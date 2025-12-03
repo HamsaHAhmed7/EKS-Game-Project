@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/HamsaHAhmed7/EKS-Game-Project
     targetRevision: main
-    path: kubernetes
+    path: infra/kubernetes
   destination:
     server: https://kubernetes.default.svc
     namespace: eks-game-2048
