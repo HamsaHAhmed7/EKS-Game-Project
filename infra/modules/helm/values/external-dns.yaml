@@ -1,0 +1,11 @@
+provider:
+  name: aws
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::016873651140:role/external-dns-role
+
+domainFilters:
+  - eks.hamsa-ahmed.co.uk
+
+policy: sync

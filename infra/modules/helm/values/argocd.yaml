@@ -1,0 +1,12 @@
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hostname: argocd.eks.hamsa-ahmed.co.uk
+    tls: true
+
+configs:
+  params:
+    server.insecure: true

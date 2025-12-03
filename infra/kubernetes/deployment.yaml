@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-game-2048-deployment
+  namespace: eks-game-2048
+  labels:
+    app: eks-game-2048
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: eks-game-2048
+  template:
+    metadata:
+      labels:
+        app: eks-game-2048
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - name: eks-game-2048
+        image: 016873651140.dkr.ecr.eu-west-2.amazonaws.com/eks-game-2048
+        ports:
+        - name: http
+          containerPort: 80
+        imagePullPolicy: IfNotPresent
+      nodeSelector:
+        kubernetes.io/os: linux
