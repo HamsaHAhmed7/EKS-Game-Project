@@ -1,19 +1,20 @@
-output "cluster_name" {
-  value = aws_eks_cluster.eks_cluster.name
-}
-
 output "cluster_endpoint" {
-  value = aws_eks_cluster.eks_cluster.endpoint
+  description = "The endpoint for the EKS cluster."
+  value       = aws_eks_cluster.cluster.endpoint
 }
 
-output "oidc_provider_arn" {
-  value = aws_iam_openid_connect_provider.eks.arn
+output "cluster_ca_cert" {
+  description = "The base64 encoded certificate data required to communicate with the cluster."
+  value       = aws_eks_cluster.cluster.certificate_authority[0].data
 }
 
-output "oidc_provider_url" {
-  value = replace(aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer, "https://", "")
+output "cluster_name" {
+  description = "The name of the EKS cluster."
+  value       = aws_eks_cluster.cluster.name
 }
 
-output "cluster_ca_certificate" {
-  value = aws_eks_cluster.eks_cluster.certificate_authority[0].data
+output "aws_lbc_pod_identity" {
+  description = "The ARN of the IAM role associated with the AWS Load Balancer Controller pod identity."
+  value       = aws_iam_role.aws_lbc_role.arn
+
 }
