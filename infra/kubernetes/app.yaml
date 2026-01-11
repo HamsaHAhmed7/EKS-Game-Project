@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-game
+  labels:
+    app: 2024-eks-game
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: 2024-eks-game
+  template:
+    metadata:
+      labels:
+        app: 2024-eks-game
+    spec:
+      containers:
+        - name: eks-game-2048
+          image: 016873651140.dkr.ecr.eu-west-2.amazonaws.com/eks-game-2048:latest
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
