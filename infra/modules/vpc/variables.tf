@@ -2,6 +2,14 @@ variable "project" {
   type = string
 }
 
+variable "cluster_name" {
+  type = string
+}
+
+variable "common_tags" {
+  type = map(string)
+}
+
 variable "vpc_cidr_block" {
   type    = string
   default = "10.0.0.0/16"
