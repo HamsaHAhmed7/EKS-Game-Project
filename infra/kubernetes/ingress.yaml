@@ -1,16 +1,16 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: eks-game-2048
-  namespace: eks-game-2048
+  name: eks-game-ingress
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: nginx
+  ingressClassName: external-nginx
   tls:
   - hosts:
     - game.eks.hamsa-ahmed.co.uk
-    secretName: game-tls
+    secretName: eks-game-tls
   rules:
   - host: game.eks.hamsa-ahmed.co.uk
     http:
@@ -19,6 +19,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: eks-game-2048
+            name: eks-game-service
             port:
               number: 80
