@@ -1,0 +1,4 @@
+clusterName: eks-game-eks-cluster
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
