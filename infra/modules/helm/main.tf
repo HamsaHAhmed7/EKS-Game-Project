@@ -1,65 +1,71 @@
-provider "helm" {
-  kubernetes = {
-    host                   = var.cluster_endpoint
-    cluster_ca_certificate = base64decode(var.cluster_ca_certificate)
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      args        = ["eks", "get-token", "--cluster-name", var.cluster_name]
+
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  namespace  = "kube-system"
+  version    = "3.12.2"
+
+  values = [file("${path.root}/values/metrics.yaml")]
+}
+
+resource "helm_release" "aws_load_balancer_controller" {
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  version    = "1.7.2"
+
+  set = [
+    {
+      name  = "clusterName"
+      value = var.cluster_name
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "true"
+    },
+    {
+      name  = "serviceAccount.name"
+      value = "aws-load-balancer-controller"
+    },
+    {
+      name  = "vpcId"
+      value = var.vpc_id
     }
-  }
+  ]
+
+  depends_on = [var.lbc_pod_identity]
 }
 
 resource "helm_release" "nginx_ingress" {
-  name             = "nginx-ingress"
-  repository       = "https://kubernetes.github.io/ingress-nginx"
-  chart            = "ingress-nginx"
+  name             = "ingress-nginx"
   namespace        = "ingress-nginx"
   create_namespace = true
+  repository       = "https://kubernetes.github.io/ingress-nginx"
+  chart            = "ingress-nginx"
+  version          = "4.11.3"
 
-  values = [
-    file("${path.module}/values/nginx-ingress.yaml")
-  ]
+  values = [file("${path.root}/values/nginx-ingress.yaml")]
+
+  depends_on = [helm_release.aws_load_balancer_controller]
 }
 
 resource "helm_release" "cert_manager" {
   name             = "cert-manager"
-  repository       = "https://charts.jetstack.io"
-  chart            = "cert-manager"
   namespace        = "cert-manager"
   create_namespace = true
+  repository       = "https://charts.jetstack.io"
+  chart            = "cert-manager"
+  version          = "v1.12.2"
 
-  values = [
-    file("${path.module}/values/cert-manager.yaml")
-  ]
-}
-
-resource "helm_release" "external_dns" {
-  name             = "external-dns"
-  repository       = "https://kubernetes-sigs.github.io/external-dns"
-  chart            = "external-dns"
-  namespace        = "external-dns"
-  create_namespace = true
-
-  values = [
-    file("${path.module}/values/external-dns.yaml")
-  ]
-}
-
-
-resource "helm_release" "argocd" {
-  name             = "argocd"
-  repository       = "https://argoproj.github.io/argo-helm"
-  chart            = "argo-cd"
-  namespace        = "argocd"
-  create_namespace = true
-
-  values = [
-    file("${path.module}/values/argocd.yaml")
+  set = [
+    {
+      name  = "installCRDs"
+      value = "true"
+    }
   ]
 
-  depends_on = [helm_release.cert_manager]
+  depends_on = [helm_release.nginx_ingress]
+
 }
-
-
-

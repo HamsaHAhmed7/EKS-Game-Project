@@ -1,23 +1,13 @@
+variable "lbc_pod_identity" {
+  description = "The ARN of the IAM role associated with the AWS Load Balancer Controller pod identity."
+  type        = string
+}
+
 variable "cluster_name" {
-  type = string
+  description = "The name of the EKS cluster."
+  type        = string
 }
-
-variable "cluster_endpoint" {
-  type = string
-}
-
-variable "cluster_ca_certificate" {
-  type = string
-}
-
-variable "cert_manager_role_arn" {
-  type = string
-}
-
-variable "external_dns_role_arn" {
-  type = string
-}
-
-variable "domain" {
-  type = string
+variable "vpc_id" {
+  description = "The ID of the VPC where the EKS cluster is deployed."
+  type        = string
 }
