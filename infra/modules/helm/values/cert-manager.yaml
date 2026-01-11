@@ -1,5 +1,0 @@
-installCRDs: true
-
-serviceAccount:
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::016873651140:role/eks-game-cert-manager-role
