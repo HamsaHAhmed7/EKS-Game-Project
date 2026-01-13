@@ -1,0 +1,8 @@
+project        = "eks-game"
+aws_region     = "eu-west-2"
+domain         = "hamsa-ahmed.co.uk"
+parent_zone_id = "Z07385433QNXDZZ6RBE0E"
+environment    = "dev"
+eks_version    = "1.34"
+github_org     = "HamsaHAhmed7"
+github_repo    = "EKS-Game-Project"
