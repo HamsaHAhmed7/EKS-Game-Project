@@ -1,0 +1,47 @@
+adminUser: admin
+adminPassword: admin123
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-server.kube-monitoring.svc.cluster.local:80
+      access: proxy
+      isDefault: true
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/default
+
+dashboards:
+  default:
+    kubernetes-cluster:
+      gnetId: 15759
+      revision: 1
+      datasource: Prometheus
+    kubernetes-monitoring:
+      gnetId: 315
+      revision: 3
+      datasource: Prometheus
+    nginx-ingress:
+      gnetId: 9614
+      revision: 1
+      datasource: Prometheus
+    node-exporter:
+      gnetId: 1860
+      revision: 31
+      datasource: Prometheus
+
+service:
+  type: ClusterIP
