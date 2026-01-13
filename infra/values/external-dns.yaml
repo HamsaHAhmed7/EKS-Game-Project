@@ -1,0 +1,7 @@
+provider: aws
+domainFilters:
+  - eks.hamsa-ahmed.co.uk
+policy: sync
+serviceAccount:
+  create: true
+  name: external-dns

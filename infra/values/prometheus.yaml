@@ -1,0 +1,12 @@
+server:
+  persistentVolume:
+    enabled: false
+
+alertmanager:
+  enabled: false
+  persistentVolume:
+    enabled: false
+
+scrape_configs:
+  - job_name: prometheus-scrape
+    metrics_path: /metrics

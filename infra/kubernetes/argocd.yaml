@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server-ingress
+  namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    external-dns.alpha.kubernetes.io/hostname: argocd.eks.hamsa-ahmed.co.uk
+spec:
+  ingressClassName: external-nginx
+  rules:
+  - host: argocd.eks.hamsa-ahmed.co.uk
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argo-cd-argocd-server
+            port:
+              name: https
+  tls:
+  - hosts:
+    - argocd.eks.hamsa-ahmed.co.uk
+    secretName: argocd-server-tls

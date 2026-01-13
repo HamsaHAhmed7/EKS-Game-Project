@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: kube-monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    external-dns.alpha.kubernetes.io/hostname: grafana.eks.hamsa-ahmed.co.uk
+spec:
+  ingressClassName: external-nginx
+  tls:
+  - hosts:
+    - grafana.eks.hamsa-ahmed.co.uk
+    secretName: grafana-tls
+  rules:
+  - host: grafana.eks.hamsa-ahmed.co.uk
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 80

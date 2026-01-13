@@ -1,0 +1,6 @@
+global:
+  domain: argocd.game.eks.hamsa-ahmed.co.uk
+
+server:
+  ingress:
+    enabled: false
