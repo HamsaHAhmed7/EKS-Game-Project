@@ -1,0 +1,34 @@
+name: Update Kubernetes Manifest
+
+on:
+  workflow_run:
+    workflows: ["Docker Build & Scan"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  update-manifest:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update image in deployment
+        run: |
+          IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
+          sed -i "s|image: .*eks-game-2048.*|image: 016873651140.dkr.ecr.eu-west-2.amazonaws.com/eks-game-2048:$IMAGE_TAG|g" infra/kubernetes/app.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/kubernetes/app.yaml
+          git commit -m "chore: update image to ${{ github.event.workflow_run.head_sha }}" || echo "No changes"
+          git push
