@@ -28,11 +28,11 @@ module "eks" {
 
 module "helm" {
   source = "./modules/helm"
-  
-  lbc_pod_identity         = module.eks.aws_lbc_pod_identity
+
+  lbc_pod_identity          = module.eks.aws_lbc_pod_identity
   external_dns_pod_identity = module.eks.external_dns_pod_identity
-  cluster_name             = module.eks.cluster_name
-  vpc_id                   = module.vpc.vpc_id
+  cluster_name              = module.eks.cluster_name
+  vpc_id                    = module.vpc.vpc_id
 
   depends_on = [module.eks]
 }

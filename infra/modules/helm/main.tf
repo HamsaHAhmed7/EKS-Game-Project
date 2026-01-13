@@ -72,17 +72,17 @@ resource "helm_release" "cert_manager" {
 
 
 resource "helm_release" "argo_cd" {
-  name       = "argo-cd"
-  namespace  = "argocd"
+  name             = "argo-cd"
+  namespace        = "argocd"
   create_namespace = true
-  repository = "https://argoproj.github.io/argo-helm"
-  chart      = "argo-cd"
-  version    = "7.7.11"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = "7.7.11"
 
   values = [file("${path.root}/values/argo-cd.yaml")]
 
   depends_on = [helm_release.cert_manager]
-  
+
 }
 
 resource "helm_release" "external_dns" {
@@ -99,13 +99,13 @@ resource "helm_release" "external_dns" {
 }
 
 resource "helm_release" "prometheus" {
-  depends_on = [helm_release.metrics_server]
-  name       = "prometheus"
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "prometheus"
-  namespace  = "kube-monitoring"
+  depends_on       = [helm_release.metrics_server]
+  name             = "prometheus"
+  repository       = "https://prometheus-community.github.io/helm-charts"
+  chart            = "prometheus"
+  namespace        = "kube-monitoring"
   create_namespace = true
-  version    = "28.3.0"
+  version          = "28.3.0"
   values = [
     file("${path.root}/values/prometheus.yaml")
   ]
@@ -114,11 +114,11 @@ resource "helm_release" "prometheus" {
 
 
 resource "helm_release" "grafana" {
-  name             = "grafana"
-  namespace        = "kube-monitoring"
-  repository       = "https://grafana.github.io/helm-charts"
-  chart            = "grafana"
-  version          = "8.8.2"
+  name       = "grafana"
+  namespace  = "kube-monitoring"
+  repository = "https://grafana.github.io/helm-charts"
+  chart      = "grafana"
+  version    = "8.8.2"
 
   values = [file("${path.root}/values/grafana.yaml")]
 
