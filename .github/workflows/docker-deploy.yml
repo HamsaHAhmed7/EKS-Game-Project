@@ -1,4 +1,4 @@
-name: Docker Build & Scan
+name: Docker Build & Deploy
 
 on:
   push:
@@ -10,14 +10,15 @@ on:
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: eks-game-2048
+  EKS_CLUSTER: eks-game-eks-cluster
 
 jobs:
-  build-scan-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -37,10 +38,9 @@ jobs:
       - name: Build Docker Image
         working-directory: ./app
         run: |
-          IMAGE_TAG=${{ github.sha }}
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
+          docker build -t $ECR_REPOSITORY:${{ github.sha }} .
+          docker tag $ECR_REPOSITORY:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
+          docker tag $ECR_REPOSITORY:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
 
       - name: Run Trivy Security Scan
         uses: aquasecurity/trivy-action@master
@@ -55,6 +55,18 @@ jobs:
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
           docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
         
-      - name: Output Image Details
+      - name: Update Kubernetes Manifest
         run: |
-          echo "Image pushed: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}"
+          sed -i "s|image: .*eks-game-2048.*|image: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}|g" infra/kubernetes/app.yaml
+
+      - name: Commit Manifest Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/kubernetes/app.yaml
+          git diff --staged --quiet || git commit -m "chore: update image to ${{ github.sha }}"
+          git push
+
+      - name: Wait for ArgoCD Sync
+        run: |
+          echo "✅ Image pushed and manifest updated. ArgoCD will sync automatically."
