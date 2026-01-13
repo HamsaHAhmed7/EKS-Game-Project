@@ -18,7 +18,7 @@ env:
   EKS_CLUSTER: eks-game-eks-cluster
 
 jobs:
-  build-and-deploy:
+  build-scan-deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -34,6 +34,11 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create ECR Repository if not exists
+        run: |
+          aws ecr describe-repositories --repository-names $ECR_REPOSITORY --region $AWS_REGION || \
+          aws ecr create-repository --repository-name $ECR_REPOSITORY --region $AWS_REGION
 
       - name: Build Docker Image
         working-directory: ./app
@@ -59,14 +64,21 @@ jobs:
         run: |
           sed -i "s|image: .*eks-game-2048.*|image: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}|g" infra/kubernetes/app.yaml
 
-      - name: Commit Manifest Changes
+      - name: Commit and Push Manifest
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add infra/kubernetes/app.yaml
-          git diff --staged --quiet || git commit -m "chore: update image to ${{ github.sha }}"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update image to ${{ github.sha }}"
+            git push
+          fi
 
-      - name: Wait for ArgoCD Sync
+      - name: Deployment Summary
         run: |
-          echo "✅ Image pushed and manifest updated. ArgoCD will sync automatically."
+          echo "✅ Docker image built and scanned"
+          echo "✅ Image pushed to ECR: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}"
+          echo "✅ Kubernetes manifest updated"
+          echo "🔄 ArgoCD will sync automatically"
