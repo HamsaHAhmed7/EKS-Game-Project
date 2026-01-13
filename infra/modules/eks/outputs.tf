@@ -18,3 +18,7 @@ output "aws_lbc_pod_identity" {
   value       = aws_iam_role.aws_lbc_role.arn
 
 }
+
+output "external_dns_pod_identity" {
+  value = aws_eks_pod_identity_association.external_dns.id
+}

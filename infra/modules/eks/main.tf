@@ -156,3 +156,28 @@ resource "aws_eks_pod_identity_association" "aws_lbc_pod_identity" {
   service_account = "aws-load-balancer-controller"
   role_arn        = aws_iam_role.aws_lbc_role.arn
 }
+
+
+resource "aws_iam_policy" "external_dns_policy" {
+  policy = file("${path.module}/external-dns-policy.json")
+  name   = "${var.project}-external-dns-policy"
+}
+
+resource "aws_iam_role" "external_dns_role" {
+  name               = "${var.project}-external-dns-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "external_dns_attachment" {
+  role       = aws_iam_role.external_dns_role.name
+  policy_arn = aws_iam_policy.external_dns_policy.arn
+}
+
+resource "aws_eks_pod_identity_association" "external_dns" {
+  cluster_name    = aws_eks_cluster.cluster.name
+  namespace       = "external-dns"
+  service_account = "external-dns"
+  role_arn        = aws_iam_role.external_dns_role.arn
+}
+
+
