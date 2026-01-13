@@ -190,3 +190,5 @@ tmp/
 *.orig
 *.swp
 *.swo
+
+grafana.yaml
