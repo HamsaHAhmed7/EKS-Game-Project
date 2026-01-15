@@ -118,7 +118,7 @@ Grafana dashboards show:
 - NGINX traffic and latency
 - Node metrics
 
-
+![Prometheus Target Health](docs/prometheus-targets.png)
 
 ---
 
