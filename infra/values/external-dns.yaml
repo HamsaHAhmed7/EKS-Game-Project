@@ -5,3 +5,5 @@ policy: sync
 serviceAccount:
   create: true
   name: external-dns
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::016873651140:role/eks-game-external-dns-role
