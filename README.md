@@ -68,7 +68,7 @@ kubectl apply -f kubernetes/
 - Checkov security scanning
 - Plan generation for review
 
-[INSERT TERRAFORM PIPELINE SCREENSHOT]
+![Terraform CI Pipeline](docs/terraform-ci.png)
 
 **Pipeline 2 - Docker Deployment:**
 - Build image → Trivy scan → Push to ECR
