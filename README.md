@@ -4,7 +4,7 @@ Production-grade application deployment on Amazon EKS with full automation, GitO
 
 **Live:** https://game.eks.hamsa-ahmed.co.uk
 
-[INSERT DEMO VIDEO]
+
 
 ---
 
@@ -17,7 +17,7 @@ Complete cloud-native deployment demonstrating:
 - SSL/TLS automation
 - Monitoring and observability
 
-[INSERT ARCHITECTURE DIAGRAM]
+![EKS Production Architecture](./docs/architecture-diagram.png)
 
 ---
 
@@ -56,7 +56,8 @@ kubectl apply -f kubernetes/
 
 **4. Update Route53 NS delegation and wait for certificates**
 
-[INSERT DEPLOYMENT SCREENSHOT]
+![Terraform CI Pipeline](docs/terraform-ci.png)
+
 
 ---
 
@@ -73,7 +74,8 @@ kubectl apply -f kubernetes/
 - Build image → Trivy scan → Push to ECR
 - Update manifest → ArgoCD auto-deploys
 
-[INSERT DOCKER PIPELINE SCREENSHOT]
+![Docker CI Pipeline](docs/docker-i.png)
+
 
 **GitOps Flow:**
 ```
@@ -88,19 +90,22 @@ ArgoCD syncs → Rolling deployment
 **Application:**  
 https://game.eks.hamsa-ahmed.co.uk
 
-[INSERT APP SCREENSHOT]
+![Application Screenshot](docs/eks-game.png)
+
 
 **ArgoCD:**  
 https://argocd.eks.hamsa-ahmed.co.uk  
 Login: `admin` / `kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d`
 
-[INSERT ARGOCD SCREENSHOT]
+![ArgoCD Dashboard](docs/argocd.png)
+
 
 **Grafana:**  
 https://grafana.eks.hamsa-ahmed.co.uk  
 Login: `admin` / `admin123`
 
-[INSERT GRAFANA SCREENSHOT]
+![Grafana Dashboard](docs/grafana.png)
+
 
 ---
 
@@ -113,7 +118,7 @@ Grafana dashboards show:
 - NGINX traffic and latency
 - Node metrics
 
-[INSERT MONITORING SCREENSHOT]
+
 
 ---
 
