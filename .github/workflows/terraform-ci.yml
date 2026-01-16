@@ -3,12 +3,11 @@ name: Terraform CI
 on:
   pull_request:
     paths:
-      - 'infra/**'
+      - infra/**
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - 'infra/**'
+      - infra/**
   workflow_dispatch:
 
 permissions:
@@ -19,35 +18,36 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     defaults:
       run:
-        working-directory: ./infra
-    
+        working-directory: infra
+
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
+      - name: aws auth
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Setup Terraform
+      - name: terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.12.2
 
-      - name: Terraform Format Check
+      - name: fmt
         run: terraform fmt -check -recursive
 
-      - name: Terraform Init
+      - name: init
         run: terraform init
 
-      - name: Terraform Validate
+      - name: validate
         run: terraform validate
 
-      - name: Run Checkov Security Scan
+      - name: checkov
         uses: bridgecrewio/checkov-action@master
         with:
           directory: infra/
@@ -55,36 +55,38 @@ jobs:
           output_format: cli
           soft_fail: true
 
-      - name: Terraform Plan
+      - name: plan
         id: plan
         run: terraform plan -var-file=terraform.tfvars -no-color
         continue-on-error: true
 
-      - name: Comment PR
+      - name: pr comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const output = `#### Terraform Validation Results
-            
-            ✅ Format Check
-            ✅ Validate  
-            ✅ Checkov Scan (57 passed, 10 failed - soft fail enabled)
-            
-            <details><summary>📋 Terraform Plan</summary>
-            
+            const body = `
+            #### Terraform checks
+
+            - fmt: ok
+            - validate: ok
+            - checkov: soft fail
+
+            <details>
+            <summary>plan</summary>
+
             \`\`\`terraform
-            ${{ steps.plan.outputs.stdout }}
+            ${steps.plan.outputs.stdout}
             \`\`\`
-            
+
             </details>
-            
-            > Infrastructure changes require manual approval and deployment`;
+
+            manual apply only
+            `;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output
-            })
-#
+              body
+            });

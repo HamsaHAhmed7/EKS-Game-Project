@@ -2,10 +2,9 @@ name: Docker Build & Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - 'app/**'
+      - app/**
   workflow_dispatch:
 
 permissions:
@@ -15,70 +14,68 @@ permissions:
 env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: eks-game-2048
-  EKS_CLUSTER: eks-game-eks-cluster
 
 jobs:
   build-scan-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
+      - name: aws auth
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: eu-west-2
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: ecr login
+        id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Create ECR Repository if not exists
+      - name: ecr repo
         run: |
-          aws ecr describe-repositories --repository-names $ECR_REPOSITORY --region $AWS_REGION || \
-          aws ecr create-repository --repository-name $ECR_REPOSITORY --region $AWS_REGION
+          aws ecr describe-repositories \
+            --repository-names "$ECR_REPOSITORY" \
+            --region "$AWS_REGION" \
+          || aws ecr create-repository \
+            --repository-name "$ECR_REPOSITORY" \
+            --region "$AWS_REGION"
 
-      - name: Build Docker Image
-        working-directory: ./app
+      - name: build image
+        working-directory: app
         run: |
-          docker build -t $ECR_REPOSITORY:${{ github.sha }} .
-          docker tag $ECR_REPOSITORY:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
-          docker tag $ECR_REPOSITORY:${{ github.sha }} ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
+          docker build -t "$ECR_REPOSITORY:$GITHUB_SHA" .
+          docker tag "$ECR_REPOSITORY:$GITHUB_SHA" \
+            "${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$GITHUB_SHA"
+          docker tag "$ECR_REPOSITORY:$GITHUB_SHA" \
+            "${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:latest"
 
-      - name: Run Trivy Security Scan
+      - name: trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}'
-          format: 'table'
-          exit-code: '0'
-          severity: 'CRITICAL,HIGH'
+          image-ref: ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          exit-code: 0
+          format: table
 
-      - name: Push to ECR
+      - name: push image
         run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
-          docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
-        
-      - name: Update Kubernetes Manifest
-        run: |
-          sed -i "s|image: .*eks-game-2048.*|image: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}|g" infra/kubernetes/app.yaml
+          docker push "${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$GITHUB_SHA"
+          docker push "${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:latest"
 
-      - name: Commit and Push Manifest
+      - name: update manifest
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          sed -i \
+            "s|image: .*eks-game-2048.*|image: ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$GITHUB_SHA|g" \
+            infra/kubernetes/app.yaml
+
+      - name: commit manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add infra/kubernetes/app.yaml
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "chore: update image to ${{ github.sha }}"
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: bump image"
             git push
           fi
-
-      - name: Deployment Summary
-        run: |
-          echo "✅ Docker image built and scanned"
-          echo "✅ Image pushed to ECR: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}"
-          echo "✅ Kubernetes manifest updated"
-          echo "🔄 ArgoCD will sync automatically"
