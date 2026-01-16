@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: eks-game-2048
-          image: 016873651140.dkr.ecr.eu-west-2.amazonaws.com/eks-game-2048:884f810e434fb9f59c0c844d5a9e61b8ef896570
+          image: 016873651140.dkr.ecr.eu-west-2.amazonaws.com/eks-game-2048:5aba85a696c721390426f4b7f49fbca77f2d47b1
           ports:
             - containerPort: 80
               name: http
