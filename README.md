@@ -1,3 +1,6 @@
+[![Terraform CI](https://github.com/HamsaHAhmed7/EKS-Game-Project/actions/workflows/terraform-ci.yml/badge.svg)](https://github.com/HamsaHAhmed7/EKS-Game-Project/actions/workflows/terraform-ci.yml)
+[![Docker Build](https://github.com/HamsaHAhmed7/EKS-Game-Project/actions/workflows/docker-deploy.yml/badge.svg)](https://github.com/HamsaHAhmed7/EKS-Game-Project/actions/workflows/docker-deploy.yml)
+
 # EKS 2048 Game - Production Kubernetes Deployment
 
 Production-grade application deployment on Amazon EKS with full automation, GitOps, and monitoring.
