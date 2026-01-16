@@ -133,6 +133,8 @@ Grafana dashboards show:
 - IAM Pod Identity (no static credentials)
 - Private subnets for worker nodes
 
+*Note: nginx runs as root in the container for simplicity. Production deployments would use non-root with custom config.*
+
 ---
 
 ## Scaling
