@@ -15,7 +15,7 @@ spec:
         app: 2024-eks-game
     spec:
       containers:
-        - name: eks-game-2048
+        - name: eks-it-tools
           image: 016873651140.dkr.ecr.eu-west-2.amazonaws.com/eks-game-2048:5aba85a696c721390426f4b7f49fbca77f2d47b1
           ports:
             - containerPort: 80

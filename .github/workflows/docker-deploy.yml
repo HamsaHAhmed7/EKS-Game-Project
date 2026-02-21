@@ -13,7 +13,7 @@ permissions:
 
 env:
   AWS_REGION: eu-west-2
-  ECR_REPOSITORY: eks-game-2048
+  ECR_REPOSITORY: eks-it-tools
 
 jobs:
   build-scan-deploy:
@@ -67,7 +67,7 @@ jobs:
       - name: update manifest
         run: |
           sed -i \
-            "s|image: .*eks-game-2048.*|image: ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$GITHUB_SHA|g" \
+            "s|image: .*eks-it-tools.*|image: ${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:$GITHUB_SHA|g" \
             infra/kubernetes/app.yaml
 
       - name: commit manifest
