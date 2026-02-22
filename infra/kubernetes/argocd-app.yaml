@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/HamsaHAhmed7/EKS-Game-Project
+    repoURL: https://github.com/HamsaHAhmed7/EKS-IT-Tools-Project
     targetRevision: main
     path: infra/kubernetes
   destination:
