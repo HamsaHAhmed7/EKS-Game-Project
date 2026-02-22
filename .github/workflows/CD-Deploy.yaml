@@ -1,0 +1,71 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'infra/**'
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  ECR_REPO: eks-it-tools
+
+jobs:
+  docker-deploy:
+    if: contains(github.event.head_commit.modified, 'app/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: aws auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: ecr login
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: build and push
+        working-directory: app
+        run: |
+          docker build -t $ECR_REPO:$GITHUB_SHA .
+          docker tag $ECR_REPO:$GITHUB_SHA ${{ steps.ecr.outputs.registry }}/$ECR_REPO:$GITHUB_SHA
+          docker push ${{ steps.ecr.outputs.registry }}/$ECR_REPO:$GITHUB_SHA
+
+      - name: update manifest
+        run: |
+          sed -i "s|image: .*$ECR_REPO.*|image: ${{ steps.ecr.outputs.registry }}/$ECR_REPO:$GITHUB_SHA|" infra/kubernetes/app.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add infra/kubernetes/app.yaml
+          git commit -m "update image" || exit 0
+          git push
+
+  terraform-deploy:
+    if: contains(github.event.head_commit.modified, 'infra/')
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: aws auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+      - run: terraform apply -var-file=terraform.tfvars -auto-approve

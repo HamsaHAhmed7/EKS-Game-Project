@@ -21,7 +21,7 @@ resource "aws_eks_cluster" "cluster" {
   ]
 
   tags = merge(var.common_tags, {
-    Name = "${var.project}-eks-cluster"
+    Name = "${var.project}-cluster"
   })
 
 }

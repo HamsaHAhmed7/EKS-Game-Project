@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'infra/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  docker-check:
+    if: contains(github.event.pull_request.changed_files, 'app/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: aws auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: build image
+        working-directory: app
+        run: docker build -t test:${{ github.sha }} .
+
+      - name: trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: test:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          exit-code: 1
+
+  terraform-check:
+    if: contains(github.event.pull_request.changed_files, 'infra/')
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: infra
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: aws auth
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform fmt -check
+      - run: terraform init
+      - run: terraform validate
+
+      - name: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: infra/
+          soft_fail: false
+
+      - run: terraform plan -var-file=terraform.tfvars
